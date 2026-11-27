@@ -1237,9 +1237,26 @@ export const createWorktree = async ({
   }
 
   // Primitive owner for `git worktree add`; callers route through createWorktreeCore.
-  await runGitCommand(["worktree", "add", finalWorktreePath, ...sourcePlan.addArguments], {
+  const { createWorktreeWithCowFallback } = await import("./cow-worktree.js");
+  await createWorktreeWithCowFallback({
     cwd,
-    timeout: 120_000,
+    worktreePath: finalWorktreePath,
+    addArguments: sourcePlan.addArguments,
+    runPlainAdd: async () => {
+      await runGitCommand(["worktree", "add", finalWorktreePath, ...sourcePlan.addArguments], {
+        cwd,
+        timeout: 120_000,
+      });
+    },
+    runNoCheckoutAdd: async () => {
+      await runGitCommand(
+        ["worktree", "add", "--no-checkout", finalWorktreePath, ...sourcePlan.addArguments],
+        {
+          cwd,
+          timeout: 120_000,
+        },
+      );
+    },
   });
   worktreePath = normalizePathForOwnership(finalWorktreePath);
 

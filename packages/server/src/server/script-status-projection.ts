@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import type { Logger } from "pino";
 import type {
   ScriptStatusUpdateMessage,
@@ -37,6 +38,9 @@ export function readPaseoConfigForProjection(
   workspaceDirectory: string,
   logger: Logger,
 ): PaseoConfig | null {
+  if (!existsSync(workspaceDirectory)) {
+    return null;
+  }
   const result = readPaseoConfig(workspaceDirectory);
   if (result.ok) {
     return result.config;

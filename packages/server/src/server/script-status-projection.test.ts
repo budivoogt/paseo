@@ -7,6 +7,7 @@ import { ScriptRouteStore } from "./script-proxy.js";
 import {
   buildWorkspaceScriptPayloads,
   createScriptStatusEmitter,
+  readPaseoConfigForProjection,
 } from "./script-status-projection.js";
 import { WorkspaceScriptPayloadSchema } from "@getpaseo/protocol/messages";
 import type { ScriptHealthState } from "./script-health-monitor.js";
@@ -466,6 +467,15 @@ describe("script-status-projection", () => {
     } finally {
       workspace.cleanup();
     }
+  });
+
+  it("readPaseoConfigForProjection returns null quietly when workspace directory does not exist", () => {
+    const logger = createTestLogger();
+    const warnSpy = vi.spyOn(logger, "warn");
+    const missingDir = path.join(tmpdir(), `paseo-missing-workspace-${Date.now()}`);
+
+    expect(readPaseoConfigForProjection(missingDir, logger)).toBeNull();
+    expect(warnSpy).not.toHaveBeenCalled();
   });
 
   it("buildWorkspaceScriptPayloads given paseoConfig=null still surfaces orphaned runtime scripts", () => {
